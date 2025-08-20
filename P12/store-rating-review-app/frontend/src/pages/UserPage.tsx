@@ -1,38 +1,85 @@
-import React, { useEffect, useState } from 'react';
-import axios from '../api/axios';
-import StoreList from '../components/User/StoreList';
-import RatingForm from '../components/User/RatingForm';
+// src/pages/UserPage.tsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-const UserPage = () => {
-    const [stores, setStores] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
 
-    useEffect(() => {
-        const fetchStores = async () => {
-            try {
-                const response = await axios.get('/stores');
-                setStores(response.data);
-            } catch (err) {
-                setError('Failed to fetch stores');
-            } finally {
-                setLoading(false);
-            }
-        };
+const UserPage: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-        fetchStores();
-    }, []);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // Update the API endpoint with your backend URL
+        const res = await axios.get<User[]>("http://localhost:5000/api/users");
+        setUsers(res.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>{error}</div>;
+    fetchUsers();
+  }, []);
 
-    return (
-        <div className="user-page">
-            <h1 className="text-2xl font-bold">Browse Stores</h1>
-            <StoreList stores={stores} />
-            {/* <RatingForm /> */}
-        </div>
-    );
+  if (loading) {
+    return <h2 style={{ textAlign: "center" }}>Loading users...</h2>;
+  }
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Users List</h1>
+      {users.length === 0 ? (
+        <p style={{ textAlign: "center" }}>No users found.</p>
+      ) : (
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            backgroundColor: "#f9f9f9",
+          }}
+        >
+          <thead>
+            <tr style={{ backgroundColor: "#ddd" }}>
+              <th style={tableHeader}>ID</th>
+              <th style={tableHeader}>Name</th>
+              <th style={tableHeader}>Email</th>
+              <th style={tableHeader}>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td style={tableCell}>{user.id}</td>
+                <td style={tableCell}>{user.name}</td>
+                <td style={tableCell}>{user.email}</td>
+                <td style={tableCell}>{user.role}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};
+
+const tableHeader: React.CSSProperties = {
+  border: "1px solid #ccc",
+  padding: "10px",
+  textAlign: "left",
+  fontWeight: "bold",
+};
+
+const tableCell: React.CSSProperties = {
+  border: "1px solid #ccc",
+  padding: "10px",
 };
 
 export default UserPage;

@@ -1,6 +1,6 @@
 // src/controllers/ownerController.ts
 import { Request, Response } from "express";
-import db from "../db/sqlite";
+import { getDB } from "../db/sqlite";
 
 // GET: Owner Dashboard (average rating, total ratings, users who rated)
 export const getOwnerDashboard = async (req: Request, res: Response) => {
@@ -11,7 +11,9 @@ export const getOwnerDashboard = async (req: Request, res: Response) => {
   }
 
   try {
-    const storeRatings = await db.all(
+    const db = await getDB();
+
+    const storeRatings = await db.get(
       `SELECT AVG(rating) as average_rating, COUNT(rating) as total_ratings 
        FROM ratings 
        WHERE store_id IN (SELECT id FROM stores WHERE owner_id = ?)`,
@@ -27,8 +29,8 @@ export const getOwnerDashboard = async (req: Request, res: Response) => {
     );
 
     res.json({
-      average_rating: storeRatings[0]?.average_rating || 0,
-      total_ratings: storeRatings[0]?.total_ratings || 0,
+      average_rating: storeRatings?.average_rating || 0,
+      total_ratings: storeRatings?.total_ratings || 0,
       users_who_rated: usersWhoRated,
     });
   } catch (error) {
@@ -48,8 +50,10 @@ export const getOwnerStores = async (req: Request, res: Response) => {
   }
 
   try {
+    const db = await getDB();
+
     const stores = await db.all(
-      `SELECT id, name, description 
+      `SELECT id, name, address 
        FROM stores 
        WHERE owner_id = ?`,
       [ownerId]
@@ -74,8 +78,10 @@ export const getStoreReport = async (req: Request, res: Response) => {
   }
 
   try {
+    const db = await getDB();
+
     const store = await db.get(
-      `SELECT id, name, description 
+      `SELECT id, name, address 
        FROM stores 
        WHERE id = ? AND owner_id = ?`,
       [storeId, ownerId]
@@ -86,7 +92,7 @@ export const getStoreReport = async (req: Request, res: Response) => {
     }
 
     const ratings = await db.all(
-      `SELECT r.rating, r.comment, u.name as user_name, u.email as user_email 
+      `SELECT r.rating, r.created_at, u.name as user_name, u.email as user_email 
        FROM ratings r
        JOIN users u ON r.user_id = u.id
        WHERE r.store_id = ?`,

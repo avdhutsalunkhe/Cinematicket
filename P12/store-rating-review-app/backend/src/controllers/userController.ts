@@ -1,54 +1,65 @@
 import { Request, Response } from "express";
-import db from "../db/sqlite";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { getDB } from "../db/sqlite";
 
-// ✅ Get all stores
-export const getStores = async (req: Request, res: Response) => {
+const JWT_SECRET = process.env.JWT_SECRET || "secret";
+
+// Register
+export const registerUser = async (req: Request, res: Response) => {
   try {
-    const stores = await db.all("SELECT * FROM stores");
-    return res.status(200).json({ success: true, data: stores });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Error retrieving stores", error });
-  }
-};
+    const { name, email, password } = req.body;
 
-// ✅ Submit a rating
-export const submitRating = async (req: Request, res: Response) => {
-  const { userId, storeId, rating } = req.body;
-
-  if (!userId || !storeId || rating === undefined) {
-    return res.status(400).json({ success: false, message: "userId, storeId and rating are required" });
-  }
-
-  try {
-    await db.run(
-      "INSERT INTO ratings (user_id, store_id, rating) VALUES (?, ?, ?)",
-      [userId, storeId, rating]
-    );
-
-    return res.status(201).json({ success: true, message: "Rating submitted successfully" });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Error submitting rating", error });
-  }
-};
-
-// ✅ Update a rating
-export const updateRating = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { rating } = req.body;
-
-  if (!rating) {
-    return res.status(400).json({ success: false, message: "Rating is required" });
-  }
-
-  try {
-    const result = await db.run("UPDATE ratings SET rating = ? WHERE id = ?", [rating, id]);
-
-    if (result.changes === 0) {
-      return res.status(404).json({ success: false, message: "Rating not found" });
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
     }
 
-    return res.status(200).json({ success: true, message: "Rating updated successfully" });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Error updating rating", error });
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const db = await getDB();
+
+    await db.run(
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [name, email, hashedPassword, "user"] // default role
+    );
+
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error: any) {
+    console.error("Register error:", error);
+    res.status(500).json({ error: "Registration failed" });
+  }
+};
+
+// Login
+export const loginUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const db = await getDB();
+
+    const user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(400).json({ error: "Invalid credentials" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "1h" });
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error: any) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Login failed" });
   }
 };

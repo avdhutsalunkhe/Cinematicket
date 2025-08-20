@@ -1,11 +1,20 @@
-import { db } from "../config/db";
-import { Store } from "../models/store";
+import { getDB } from "../db/sqlite";
+
+// Define Store interface
+export interface Store {
+  id?: number;
+  name: string;
+  email: string;
+  address: string;
+  owner_id: number;
+}
 
 // Create a store
-export const createStore = async (store: Store): Promise<Store> => {
+export const createStore = async (store: Omit<Store, "id">): Promise<Store> => {
+  const db = await getDB();
   const { name, email, address, owner_id } = store;
   const result: any = await db.run(
-    'INSERT INTO stores (name, email, address, owner_id) VALUES (?, ?, ?, ?)',
+    "INSERT INTO stores (name, email, address, owner_id) VALUES (?, ?, ?, ?)",
     [name, email, address, owner_id]
   );
   return { id: result.lastID, ...store };
@@ -13,22 +22,27 @@ export const createStore = async (store: Store): Promise<Store> => {
 
 // Get all stores
 export const getAllStores = async (): Promise<Store[]> => {
-  return db.all('SELECT * FROM stores');
+  const db = await getDB();
+  return db.all("SELECT * FROM stores");
 };
 
 // Get store by ID
 export const getStoreById = async (id: number): Promise<Store | undefined> => {
-  return db.get('SELECT * FROM stores WHERE id = ?', [id]);
+  const db = await getDB();
+  return db.get("SELECT * FROM stores WHERE id = ?", [id]);
 };
 
 // Update store
-export const updateStore = async (id: number, store: Partial<Store>): Promise<void> => {
-  const fields = Object.keys(store).map(key => `${key} = ?`).join(', ');
+export const updateStore = async (id: number, store: Partial<Omit<Store, "id">>): Promise<void> => {
+  const db = await getDB();
+  if (Object.keys(store).length === 0) return;
+  const fields = Object.keys(store).map(key => `${key} = ?`).join(", ");
   const values = Object.values(store);
   await db.run(`UPDATE stores SET ${fields} WHERE id = ?`, [...values, id]);
 };
 
 // Delete store
 export const deleteStore = async (id: number): Promise<void> => {
-  await db.run('DELETE FROM stores WHERE id = ?', [id]);
+  const db = await getDB();
+  await db.run("DELETE FROM stores WHERE id = ?", [id]);
 };

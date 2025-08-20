@@ -1,19 +1,20 @@
+// src/controllers/adminController.ts
 import { Request, Response } from "express";
-import db from "../db/sqlite";
+import { getDB } from "../db/sqlite";
 
 // -------------------------
 // Get dashboard data for admin
 // -------------------------
 export const getDashboardData = async (req: Request, res: Response) => {
   try {
-    const database = await db();
-    const totalUsers = await database.get<{ count: number }>(
+    const db = await getDB();
+    const totalUsers = await db.get<{ count: number }>(
       "SELECT COUNT(*) as count FROM users"
     );
-    const totalStores = await database.get<{ count: number }>(
+    const totalStores = await db.get<{ count: number }>(
       "SELECT COUNT(*) as count FROM stores"
     );
-    const totalRatings = await database.get<{ count: number }>(
+    const totalRatings = await db.get<{ count: number }>(
       "SELECT COUNT(*) as count FROM ratings"
     );
 
@@ -38,8 +39,8 @@ export const addUser = async (req: Request, res: Response) => {
   }
 
   try {
-    const database = await db();
-    const result = await database.run(
+    const db = await getDB();
+    const result = await db.run(
       "INSERT INTO users (name, email, password, address, role) VALUES (?, ?, ?, ?, ?)",
       [name, email, password, address, role]
     );
@@ -67,8 +68,8 @@ export const addStore = async (req: Request, res: Response) => {
   }
 
   try {
-    const database = await db();
-    const result = await database.run(
+    const db = await getDB();
+    const result = await db.run(
       "INSERT INTO stores (name, email, address, owner_id) VALUES (?, ?, ?, ?)",
       [name, email, address, owner_id]
     );
@@ -92,8 +93,8 @@ export const getUsersList = async (req: Request, res: Response) => {
   const filter = (req.query.filter as string) || "";
 
   try {
-    const database = await db();
-    const users = await database.all(
+    const db = await getDB();
+    const users = await db.all(
       "SELECT * FROM users WHERE name LIKE ? OR email LIKE ?",
       [`%${filter}%`, `%${filter}%`]
     );
@@ -111,8 +112,8 @@ export const getStoresList = async (req: Request, res: Response) => {
   const filter = (req.query.filter as string) || "";
 
   try {
-    const database = await db();
-    const stores = await database.all(
+    const db = await getDB();
+    const stores = await db.all(
       "SELECT * FROM stores WHERE name LIKE ? OR address LIKE ?",
       [`%${filter}%`, `%${filter}%`]
     );

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import axios from 'axios';
+import axios from '../../api/axios'; // Corrected import
 import { useHistory } from 'react-router-dom';
 import gsap from 'gsap';
 
@@ -12,7 +12,7 @@ const Signup: React.FC = () => {
   const [success, setSuccess] = useState('');
   const errorRef = useRef<HTMLParagraphElement>(null);
   const successRef = useRef<HTMLParagraphElement>(null);
-  const history = useHistory(); // React Router v5
+  const history = useHistory();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +41,6 @@ const Signup: React.FC = () => {
       setAddress('');
       setPassword('');
 
-      // Redirect to login after 2 seconds
       setTimeout(() => history.push('/login'), 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -55,76 +54,132 @@ const Signup: React.FC = () => {
     }
   };
 
+  const containerStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    backgroundColor: '#f3f4f6', 
+    padding: '20px'
+  };
+
+  const formStyle: React.CSSProperties = {
+    backgroundColor: '#ffffff',
+    padding: '32px',
+    borderRadius: '12px',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    width: '100%',
+    maxWidth: '400px',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: '#374151',
+    marginBottom: '8px',
+  };
+
+  const inputStyle: React.CSSProperties = {
+    display: 'block',
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #d1d5db', 
+    borderRadius: '8px',
+    fontSize: '1rem',
+    outline: 'none',
+    transition: 'border-color 0.3s, box-shadow 0.3s',
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#3b82f6', 
+    color: '#fff',
+    fontWeight: 600,
+    borderRadius: '8px',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s',
+  };
+  
+  const errorStyle: React.CSSProperties = {
+    color: '#ef4444', 
+    textAlign: 'center',
+    marginBottom: '12px',
+    fontWeight: 500
+  };
+
+  const successStyle: React.CSSProperties = {
+    color: '#10b981', 
+    textAlign: 'center',
+    marginBottom: '12px',
+    fontWeight: 500
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md"
-      >
-        <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">Sign Up</h2>
+    <div style={containerStyle}>
+      <form onSubmit={handleSubmit} style={formStyle}>
+        <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px', textAlign: 'center', color: '#111827' }}>
+          Create an Account
+        </h2>
 
-        {error && (
-          <p ref={errorRef} className="text-red-500 mb-4 text-center font-medium">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p ref={successRef} className="text-green-500 mb-4 text-center font-medium">
-            {success}
-          </p>
-        )}
+        {error && <p ref={errorRef} style={errorStyle}>{error}</p>}
+        {success && <p ref={successRef} style={successStyle}>{success}</p>}
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-1">Name</label>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Full Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
             placeholder="John Doe"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
+            style={inputStyle}
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-1">Email</label>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
             placeholder="john@example.com"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
+            style={inputStyle}
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-1">Address</label>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Address</label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            required
             placeholder="123 Main St"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
+            style={inputStyle}
           />
         </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-1">Password</label>
+        <div style={{ marginBottom: '24px' }}>
+          <label style={labelStyle}>Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
             placeholder="********"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
+            style={inputStyle}
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+          style={buttonStyle}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
         >
           Sign Up
         </button>

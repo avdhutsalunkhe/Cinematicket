@@ -1,7 +1,7 @@
-import createConnection from "./sqlite";
+import { getDB } from "./sqlite";
 
 export async function initDB() {
-  const db = await createConnection();
+  const db = await getDB();
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

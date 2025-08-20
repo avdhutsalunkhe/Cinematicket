@@ -4,9 +4,14 @@ import path from "path";
 
 const DB_PATH = path.resolve(__dirname, "../../database.db");
 
-export default async function db(): Promise<Database<sqlite3.Database, sqlite3.Statement>> {
-    return open({
-        filename: DB_PATH,
-        driver: sqlite3.Database,
+let db: Database<sqlite3.Database, sqlite3.Statement> | null = null;
+
+export async function getDB(): Promise<Database<sqlite3.Database, sqlite3.Statement>> {
+  if (!db) {
+    db = await open({
+      filename: DB_PATH,
+      driver: sqlite3.Database,
     });
+  }
+  return db;
 }

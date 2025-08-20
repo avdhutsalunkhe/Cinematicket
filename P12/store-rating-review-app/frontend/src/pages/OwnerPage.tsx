@@ -4,7 +4,7 @@ import axios from '../api/axios';
 
 // Define type for individual user rating
 type UserRating = {
-    id: string;
+    id: number; // Corrected to be number
     name: string;
     rating: number;
 };
